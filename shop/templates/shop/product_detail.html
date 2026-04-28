@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .product-detail { display: flex; gap: 30px; max-width: 900px; margin: 0 auto; }
+        .product-image { flex: 1; }
+        .product-image img { max-width: 100%; border-radius: 5px; }
+        .product-info { flex: 1; }
+        .product-info h1 { margin-top: 0; }
+        .price { color: #2ecc71; font-size: 2em; font-weight: bold; margin: 20px 0; }
+        .stock { font-size: 1.1em; margin: 15px 0; }
+        .stock.available { color: #27ae60; }
+        .stock.unavailable { color: #e74c3c; }
+        .description { margin: 20px 0; line-height: 1.6; }
+        .btn { padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 1em; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-success { background: #2ecc71; color: white; }
+        .btn-success:hover { background: #27ae60; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn-secondary:hover { background: #7f8c8d; }
+        nav { margin-bottom: 20px; }
+        nav a { margin-right: 15px; }
+        .meta { color: #7f8c8d; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Главная</a>
+        <a href="{% url 'shop:product_list' %}">Каталог</a>
+        <a href="{% url 'shop:cart_view' %}">Корзина</a>
+    </nav>
+
+    <div class="product-detail">
+        <div class="product-image">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            {% else %}
+                <div style="background: #ecf0f1; height: 300px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                    Нет фото
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="product-info">
+            <h1>{{ product.name }}</h1>
+            
+            <p class="meta">
+                <strong>Категория:</strong> {{ product.category.name|default:"Не указана" }}<br>
+                <strong>Производитель:</strong> {{ product.proizvodstvo.name|default:"Не указан" }}
+            </p>
+
+            <div class="price">{{ product.price }} руб.</div>
+
+            <div class="stock {% if product.stock_quantity > 0 %}available{% else %}unavailable{% endif %}">
+                {% if product.stock_quantity > 0 %}
+                    ✓ В наличии: {{ product.stock_quantity }} шт.
+                {% else %}
+                    ✗ Нет в наличии
+                {% endif %}
+            </div>
+
+            <div class="description">
+                <h3>Описание:</h3>
+                <p>{{ product.description|linebreaks }}</p>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <a href="{% url 'shop:product_list' %}" class="btn btn-secondary">← Назад к каталогу</a>
+                
+                {% if product.stock_quantity > 0 %}
+                    <form action="{% url 'shop:cart_add' product_id=product.id %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Добавить в корзину</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

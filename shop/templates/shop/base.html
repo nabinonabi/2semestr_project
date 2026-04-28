@@ -1,0 +1,14 @@
+<nav>
+    <a href="{% url 'shop:index' %}">Главная</a>
+    <a href="{% url 'shop:product_list' %}">Каталог</a>
+    <a href="{% url 'shop:cart_view' %}">Корзина</a>
+    
+    {% if user.is_authenticated %}
+        <span>👤 {{ user.username }}</span>
+        <a href="{% url 'logout' %}">Выйти</a>
+    {% else %}
+        <a href="{% url 'login' %}">Войти</a>
+    {% endif %}
+</nav>
+{% block content %}
+{% endblock content %}

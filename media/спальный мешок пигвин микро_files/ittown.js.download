@@ -1,0 +1,126 @@
+$(document).ready(function(){
+
+    var ItTown_Event = function(selector, eventType, dataEvent){
+        this.selector = selector;
+        this.eventType = eventType;
+        //if(  )// instanceOf
+            this.dataEvent = dataEvent;
+    };
+
+    var Purpose = function(initData){
+        if( initData.yandexVar )
+            this.yandexVar = initData.yandexVar;
+        if( initData.googleVar )
+            this.googleVar = initData.googleVar;
+
+        this.debug = false;
+
+        this.globalInit = function(){
+            this.purposeSystems.yandex.init(this.yandexVar);
+            this.purposeSystems.google.init(this.googleVar);
+        };
+
+        var selfRoot = this;
+
+        this.purposeSystems = {
+            //achieving the goal to all systems (yandex, google or othes )
+            global: {
+                arGoals: {
+                    push: function(obj){
+                        $.each(selfRoot.purposeSystems, function(systemName, purposeSystem){
+                            if( systemName != 'global' ){
+                                purposeSystem.arGoals.push(obj);
+                            }
+                        });
+                    }
+                }
+            },
+            //achieving the goal Yandex Metrica
+            yandex: {
+                init: function(yandexAnalitic){
+                    $.each(this.arGoals, function(i, e){
+                        $(document).on(e.eventType, e.selector, function(ev){
+                            selfRoot.debuger('yandexAnalitic');
+                            selfRoot.debuger(e.dataEvent.name);
+                            yandexAnalitic.reachGoal(e.dataEvent.name);
+                        });
+                    });
+                },
+                arGoals:[]
+            },
+            //achieving the goal Google Analitics
+            google: {
+                init: function(googleAnalytic){
+
+                    $.each(this.arGoals, function(i, e){
+                        $(document).on(e.eventType, e.selector, function(ev){
+                            selfRoot.debuger('googleAnalytic');
+                            selfRoot.debuger([e.dataEvent.name, e.dataEvent.type]);
+                            googleAnalytic('send', 'event', e.dataEvent.name, e.dataEvent.type);
+                        });
+                    });
+                },
+                arGoals:[]
+            }
+        };
+
+        this.eventFactory = function(selector, eventType, dataEvent)
+        {
+            return new ItTown_Event(selector, eventType, dataEvent);
+        };
+
+        this.dataEventFactory = function(name, type){
+            if( type == undefined || type == '' ){
+                type = 'click';
+            }
+            var obj = Object.create(null);
+                obj.name = name;
+                obj.type = type;
+                obj.eventName = name;
+                obj.eventType = type;
+            return obj;
+        };
+
+        this.getSystemGoals = function(systemName)
+        {
+            if( this.purposeSystems[systemName] == undefined )
+                throw systemName + " system not found";
+
+            return this.purposeSystems[systemName].arGoals;
+        };
+
+        //for the test mode - show console.log function
+        this.debuger = function(data){
+            if( this.debug )
+                console.log(data);
+        }
+
+    }
+
+    var purpose = new Purpose({yandexVar:window.yaCounter20370709, googleVar: window.ga});
+
+    purpose.getSystemGoals('yandex').push(purpose.eventFactory('.ajax-form-container #submitForm_9', 'click', purpose.dataEventFactory('1-click-order')));
+    purpose.getSystemGoals('google').push(purpose.eventFactory('.ajax-form-container #submitForm_9', 'click', purpose.dataEventFactory('order', '1click-order')));
+    purpose.getSystemGoals('global').push(purpose.eventFactory('.bxr-top-line-phones > a', 'click', purpose.dataEventFactory('mobile-call', 'call')));
+    purpose.getSystemGoals('global').push(purpose.eventFactory('.mobile-phone-area .bxr-phone-number a', 'click', purpose.dataEventFactory('mobile-call', 'call')));
+    purpose.getSystemGoals('global').push(purpose.eventFactory('#bxr_subscribe_btn_Ehecit', 'click', purpose.dataEventFactory('subscribe', 'click')));
+
+    window.purpose = purpose;
+
+    if( typeof ga !== 'undefined' ){
+	ga(function(){
+	    window.purpose.googleVar = window.ga;
+	    purpose.globalInit();
+	});
+    } else {
+	purpose.globalInit();
+    }
+
+    $('.show-filter-in-mobile button').on('click', function(){
+        $('.filter-block-hidden-mobile').toggleClass('hidden-xs');
+        var text = $(this).text();
+        $(this).text(
+            text == "Показать фильтр" ? "Скрыть фильтр" : "Показать фильтр"
+        );
+    })
+});

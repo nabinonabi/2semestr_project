@@ -1,0 +1,50 @@
+
+
+/* Start:/bitrix/components/alexkova.market/form.iblock/templates/request_trade/style.css?14926804691573*/
+.popup-success {
+    min-width: 300px;
+    max-width: 800px;
+    min-height: 20px;
+    font-size: 16px;
+    color: green;
+    font-weight: bold;
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+}
+/****************************************************************************************************************/
+/**************************************************POPUP_UPDATE*************************************************/
+/**************************************************************************************************************/
+div.popup-window {
+    padding: 0;
+    border-radius: 6px;
+    z-index: 9999999999 !important;
+}
+div.popup-window .popup-window-titlebar {
+    height: 42px;
+    background: #59626a;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+div.popup-window .popup-window-titlebar div{
+    height: 42px;
+    line-height: 42px;
+    padding-left: 16px;
+    font-size: 16px;
+    font-family: "Open Sans";
+    color: #fff;    
+}
+div.popup-window .popup-window-content {
+    padding: 0;
+    background: transparent;
+}
+div.popup-window .popup-window-close-icon.popup-window-titlebar-close-icon{
+    width: 18px;
+    height: 18px;
+}
+/****************************************************************************************************************/
+/*************************************************POPUP_UPDATE*************************************************/
+/**************************************************************************************************************/
+
+/* End */
+/* /bitrix/components/alexkova.market/form.iblock/templates/request_trade/style.css?14926804691573 */
