@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Product, Category, Proizvodstvo, Cart, CartItem, Order, OrderItem
+from django.contrib.auth.models import User
+from .models import Product, Category, Proizvodstvo, Cart, CartItem, Order, OrderItem, Profile
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -54,7 +55,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    items = CartItemSerializer(many=True, read_only=True, source='cartitem_set')
+    items = CartItemSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
 
     class Meta:
@@ -62,7 +63,7 @@ class CartSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_total_price(self, obj):
-        return sum(item.product.price * item.quantity for item in obj.cartitem_set.all())
+        return obj.total_price()
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -74,9 +75,26 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, read_only=True, source='orderitem_set')
+    items = OrderItemSerializer(many=True, read_only=True)
     
     class Meta:
         model = Order
         fields = '__all__'
         read_only_fields = ['user']
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = Profile
+        fields = [
+            'username', 
+            'role', 
+            'full_name', 
+            'phone', 
+            'address', 
+            'delivery_city', 
+            'favorite_category'
+        ]
+

@@ -1,0 +1,160 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Каталог товаров - Turizm Shop{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="bi bi-grid-3x3-gap"></i> Каталог товаров</h1>
+    
+    <div class="row">
+       
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-funnel"></i> Фильтры</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'shop:product_list' %}">
+                     
+                        <div class="mb-3">
+                            <label for="category" class="form-label fw-bold">Категория</label>
+                            <select name="category" id="category" class="form-select">
+                                <option value="">Все категории</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                       
+                        <div class="mb-3">
+                            <label for="proizvodstvo" class="form-label fw-bold">Производитель</label>
+                            <select name="proizvodstvo" id="proizvodstvo" class="form-select">
+                                <option value="">Все производители</option>
+                                {% for proizvodstvo in proizvodstvos %}
+                                    <option value="{{ proizvodstvo.id }}" {% if selected_proizvodstvo == proizvodstvo.id %}selected{% endif %}>
+                                        {{ proizvodstvo.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                       
+                        <div class="mb-3">
+                            <label for="search" class="form-label fw-bold">Поиск</label>
+                            <input type="text" name="search" id="search" class="form-control" 
+                                   placeholder="Название товара..." value="{{ search_query|default:'' }}">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-search"></i> Применить фильтры
+                        </button>
+                        <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i> Сбросить
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+      
+        <div class="col-md-9">
+           
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+                <p class="mb-0 text-muted">
+                    Найдено товаров: <strong>{{ products.paginator.count }}</strong>
+                </p>
+                {% if products.has_other_pages %}
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if products.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ products.previous_page_number }}
+                                {% if selected_category %}&category={{ selected_category }}{% endif %}
+                                {% if selected_proizvodstvo %}&proizvodstvo={{ selected_proizvodstvo }}{% endif %}
+                                {% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Страница {{ products.number }} из {{ products.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if products.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ products.next_page_number }}
+                                {% if selected_category %}&category={{ selected_category }}{% endif %}
+                                {% if selected_proizvodstvo %}&proizvodstvo={{ selected_proizvodstvo }}{% endif %}
+                                {% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+
+            
+            <div class="row g-3">
+                {% for product in products %}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="card h-100 product-card shadow-sm">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 200px;">
+                            <i class="bi bi-image text-muted fs-1"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ product.name }}</h6>
+                            <p class="card-text text-muted small flex-grow-1">
+                                {{ product.description|truncatewords:15 }}
+                            </p>
+                            
+                            {% if product.stock_quantity > 0 %}
+                                <span class="badge bg-success mb-2">
+                                    <i class="bi bi-check-circle"></i> В наличии: {{ product.stock_quantity }} шт.
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger mb-2">
+                                    <i class="bi bi-x-circle"></i> Нет в наличии
+                                </span>
+                            {% endif %}
+
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="fs-5 fw-bold text-primary">{{ product.price }} ₽</span>
+                            </div>
+                            <div class="mt-2 d-grid gap-2">
+                                <a href="{% url 'shop:product_detail' pk=product.id %}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> Подробнее
+                                </a>
+                                {% if product.stock_quantity > 0 %}
+                                <form action="{% url 'shop:cart_add' product_id=product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-cart-plus"></i> В корзину
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                        <h5>Товары не найдены</h5>
+                        

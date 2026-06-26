@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
+
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название")
@@ -14,7 +16,6 @@ class Category(models.Model):
         verbose_name = "Категория товара"
         verbose_name_plural = "Категории товаров"
 
-
 class Proizvodstvo(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название")
     country = models.CharField(max_length=100, verbose_name="Страна производства")
@@ -26,7 +27,6 @@ class Proizvodstvo(models.Model):
     class Meta:
         verbose_name = "Производитель"
         verbose_name_plural = "Производители"  
-
 
 class Product(models.Model):
     name = models.CharField(max_length=200, verbose_name="Название")
@@ -44,7 +44,6 @@ class Product(models.Model):
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
 
-
 class Cart(models.Model): 
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Пользователь")
     create_add = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
@@ -58,7 +57,6 @@ class Cart(models.Model):
     class Meta:
         verbose_name = "Корзина"
         verbose_name_plural = "Корзины"  
-
 
 class CartItem(models.Model): 
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items', verbose_name="Корзина")
@@ -85,7 +83,10 @@ class CartItem(models.Model):
         verbose_name = "Элемент корзины"
         verbose_name_plural = "Элементы корзины"
 
-
+belarus_phone_validator = RegexValidator(
+    regex=r'^\+375\d{9}$',
+    message="Номер телефона должен быть в формате +375XXXXXXXXX (всего 12 символов, без пробелов)."
+)
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -103,7 +104,12 @@ class Order(models.Model):
     first_name = models.CharField(max_length=100, verbose_name="Имя")
     last_name = models.CharField(max_length=100, verbose_name="Фамилия")
     email = models.EmailField(verbose_name="Email")
-    phone = models.CharField(max_length=20, verbose_name="Телефон")
+    phone = models.CharField(
+        max_length=20, 
+        validators=[belarus_phone_validator], 
+        verbose_name="Телефон",
+        help_text="Формат: +375XXXXXXXXX"
+    )
     address = models.TextField(verbose_name="Адрес доставки")
     comments = models.TextField(blank=True, null=True, verbose_name="Комментарий")
     
@@ -117,7 +123,6 @@ class Order(models.Model):
         verbose_name = "Заказ"
         verbose_name_plural = "Заказы"
         ordering = ['-created_at']
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="Заказ")
@@ -135,15 +140,49 @@ class OrderItem(models.Model):
         verbose_name = "Элемент заказа"
         verbose_name_plural = "Элементы заказа"
 
+class Profile(models.Model):
+    class Roles(models.TextChoices):
+        CUSTOMER = 'CUSTOMER', 'Покупатель'
+        MANAGER = 'MANAGER', 'Менеджер'
+        ADMIN = 'ADMIN', 'Администратор'
 
-        
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name="Пользователь")
+    role = models.CharField(max_length=10, choices=Roles.choices, default=Roles.CUSTOMER, verbose_name="Роль")
+    full_name = models.CharField(max_length=255, blank=True, verbose_name="ФИО")
+    phone = models.CharField(
+        max_length=20, 
+        blank=True, 
+        validators=[belarus_phone_validator], 
+        verbose_name="Телефон",
+        help_text="Формат: +375XXXXXXXXX"
+    )
+    address = models.TextField(blank=True, verbose_name="Адрес доставки")
+    delivery_city = models.CharField(max_length=100, blank=True, verbose_name="Город доставки")
+    favorite_category = models.ForeignKey(
+        Category, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        verbose_name="Любимая категория"
+    )
 
+    def __str__(self):
+        return f"Профиль: {self.user.username} ({self.get_role_display()})"
 
+    class Meta:
+        verbose_name = "Профиль пользователя"
+        verbose_name_plural = "Профили пользователей"
 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created and not hasattr(instance, 'profile'):
+        Profile.objects.create(user=instance)
 
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
 
-
-
-
-# Create your models here.

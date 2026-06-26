@@ -1,24 +1,17 @@
 from django.urls import path, include
-from . import views
+from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
-from .views import (
-    ProductViewSet, 
-    CategoryViewSet, 
-    ProizvodstvoViewSet, 
-    CartViewSet, 
-    CartItemViewSet,
-    OrderViewSet
-)
+from . import views
 
 app_name = 'shop'
 
 router = DefaultRouter()
-router.register(r'products', ProductViewSet)
-router.register(r'categories', CategoryViewSet)
-router.register(r'proizvodstvos', ProizvodstvoViewSet)
-router.register(r'carts', CartViewSet)
-router.register(r'cart-items', CartItemViewSet)
-router.register(r'orders', OrderViewSet)
+router.register(r'products', views.ProductViewSet)
+router.register(r'categories', views.CategoryViewSet)
+router.register(r'proizvodstvos', views.ProizvodstvoViewSet)
+router.register(r'carts', views.CartViewSet)
+router.register(r'cart-items', views.CartItemViewSet)
+router.register(r'orders', views.OrderViewSet, basename='order')
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -32,5 +25,8 @@ urlpatterns = [
     path('cart/', views.cart_view, name='cart_view'),
     path('checkout/', views.checkout, name='checkout'),
     
+    
+    path('profile/', TemplateView.as_view(template_name='shop/profile.html'), name='profile_page'),
+    path('api/me/', views.api_me, name='api_me'),
     path('api/', include(router.urls)),
 ]

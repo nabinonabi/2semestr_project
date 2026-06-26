@@ -1,0 +1,102 @@
+{% extends "shop/base.html" %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 40px auto; padding: 0 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    {% if not user.is_authenticated %}
+    <div style="max-width: 500px; margin: 80px auto; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); text-align: center;">
+        <h2 style="color: #ff7675; margin-bottom: 15px;">Доступ ограничен</h2>
+        <p style="color: #636e72; margin-bottom: 25px; line-height: 1.6;">Для просмотра личного кабинета необходимо войти в систему под своим аккаунтом.</p>
+        <a href="{% url 'login' %}" style="background: #6c5ce7; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; transition: 0.3s; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);">Перейти ко входу</a>
+    </div>
+    {% else %}
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 30px; border-radius: 16px; color: white; box-shadow: 0 4px 20px rgba(108, 92, 231, 0.2);">
+        <div>
+            <h1 style="margin: 0 0 10px 0; font-size: 28px;">Личный кабинет</h1>
+            <span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: 500;">Роль в системе: {{ user.profile.get_role_display }}</span>
+        </div>
+        <a href="{% url 'logout' %}" style="background: #ff7675; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; transition: 0.3s; box-shadow: 0 4px 10px rgba(255, 118, 117, 0.2);">Выйти из аккаунта</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); overflow: hidden;">
+            <div style="background: #6c5ce7; color: white; padding: 20px; font-weight: bold; font-size: 18px;">Личные данные</div>
+            <form method="post" action="{% url 'shop:api_me' %}" style="padding: 25px;">
+                {% csrf_token %}
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 8px; color: #2d3436; font-weight: 500; font-size: 14px;">Имя пользователя (Логин)</label>
+                    <input type="text" value="{{ user.username }}" disabled style="width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; background: #f5f6fa; color: #7f8c8d; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 8px; color: #2d3436; font-weight: 500; font-size: 14px;">ФИО</label>
+                    <input type="text" name="full_name" value="{{ user.profile.full_name }}" style="width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 8px; color: #2d3436; font-weight: 500; font-size: 14px;">Номер телефона</label>
+                    <input type="text" name="phone" id="phone_input" value="{{ user.profile.phone }}" placeholder="+375 (00) 000-00-00" style="width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; margin-bottom: 8px; color: #2d3436; font-weight: 500; font-size: 14px;">Город доставки</label>
+                    <input type="text" name="delivery_city" value="{{ user.profile.delivery_city }}" style="width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; box-sizing: border-box;">
+                </div>
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; color: #2d3436; font-weight: 500; font-size: 14px;">Адрес доставки</label>
+                    <textarea name="address" rows="3" style="width: 100%; padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; resize: none;">{{ user.profile.address }}</textarea>
+                </div>
+                <button type="submit" style="width: 100%; background: #6c5ce7; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s;">Сохранить изменения</button>
+            </form>
+        </div>
+
+        <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); overflow: hidden;">
+            <div style="background: #00cec9; color: white; padding: 20px; font-weight: bold; font-size: 18px;">История заказов</div>
+            <div style="padding: 25px;">
+                {% if user.order_set.all %}
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f1f2f6; color: #636e72; font-size: 14px;">
+                            <th style="padding: 10px 5px;">Номер</th>
+                            <th style="padding: 10px 5px;">Дата оформления</th>
+                            <th style="padding: 10px 5px;">Сумма заказа</th>
+                            <th style="padding: 10px 5px;">Текущий статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in user.order_set.all %}
+                        <tr style="border-bottom: 1px solid #f1f2f6; font-size: 15px; color: #2d3436;">
+                            <td style="padding: 15px 5px; font-weight: bold;">#{{ order.id }}</td>
+                            <td style="padding: 15px 5px;">{{ order.created_at|date:"d.m.Y" }}</td>
+                            <td style="padding: 15px 5px; font-weight: bold;">{{ order.total_price }} руб.</td>
+                            <td style="padding: 15px 5px;"><span style="background: #ffeaa7; color: #d63031; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">{{ order.get_status_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center; padding: 40px 0; color: #b2bec3;">
+                    <p style="margin: 0 0 15px 0;">У вас пока нет оформленных заказов</p>
+                    <a href="{% url 'shop:product_list' %}" style="color: #6c5ce7; text-decoration: none; font-weight: bold;">Перейти в каталог →</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+   
+    const phoneInput = document.getElementById('phone_input');
+    if (phoneInput) {
+        phoneInput.addEventListener('focus', function() {
+            if (!phoneInput.value) phoneInput.value = '+375';
+        });
+        phoneInput.addEventListener('input', function() {
+            if (!phoneInput.value.startsWith('+375')) {
+                phoneInput.value = '+375';
+            }
+        });
+    }
+</script>
+{% endblock %}

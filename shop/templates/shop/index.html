@@ -1,0 +1,111 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}Главная - Turizm Shop{% endblock %}
+
+{% block content %}
+
+<section class="hero-section bg-gradient text-white py-5 mb-5">
+    <div class="container py-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Добро пожаловать в Turizm Shop!</h1>
+                <p class="lead mb-4">Всё необходимое для туризма, альпинизма и активного отдыха. Качественное снаряжение по доступным ценам.</p>
+                <a href="{% url 'shop:product_list' %}" class="btn btn-light btn-lg px-5">
+                    <i class="bi bi-grid-3x3-gap"></i> Перейти в каталог
+                </a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{% static 'images/hero-banner.png' %}" alt="Tourism" class="img-fluid rounded-3" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="categories-section mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4"><i class="bi bi-tags"></i> Категории товаров</h2>
+        <div class="row g-3">
+            {% for category in categories %}
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{% url 'shop:product_list' %}?category={{ category.id }}" class="category-card text-decoration-none">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-box-seam fs-1 text-primary mb-2"></i>
+                            <h6 class="card-title">{{ category.name }}</h6>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted">Категории пока не добавлены</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+<section class="products-section mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4"><i class="bi bi-star-fill text-warning"></i> Популярные товары</h2>
+        <div class="row g-4">
+            {% for product in popular_products %}
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card h-100 product-card shadow-sm">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="bi bi-image text-muted fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">{{ product.name }}</h6>
+                        <p class="card-text text-muted small flex-grow-1">{{ product.description|truncatewords:15 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="fs-5 fw-bold text-primary">{{ product.price }} ₽</span>
+                            <a href="{% url 'shop:product_detail' pk=product.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center text-muted">Товары пока не добавлены</p>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'shop:product_list' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-grid-3x3-gap"></i> Смотреть все товары
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .category-card:hover .card {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .category-card .card {
+        transition: all 0.3s ease;
+    }
+    .product-card {
+        transition: transform 0.3s ease;
+    }
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}

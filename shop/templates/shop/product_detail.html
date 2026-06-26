@@ -1,84 +1,146 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ product.name }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .product-detail { display: flex; gap: 30px; max-width: 900px; margin: 0 auto; }
-        .product-image { flex: 1; }
-        .product-image img { max-width: 100%; border-radius: 5px; }
-        .product-info { flex: 1; }
-        .product-info h1 { margin-top: 0; }
-        .price { color: #2ecc71; font-size: 2em; font-weight: bold; margin: 20px 0; }
-        .stock { font-size: 1.1em; margin: 15px 0; }
-        .stock.available { color: #27ae60; }
-        .stock.unavailable { color: #e74c3c; }
-        .description { margin: 20px 0; line-height: 1.6; }
-        .btn { padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 1em; }
-        .btn-primary { background: #3498db; color: white; }
-        .btn-primary:hover { background: #2980b9; }
-        .btn-success { background: #2ecc71; color: white; }
-        .btn-success:hover { background: #27ae60; }
-        .btn-secondary { background: #95a5a6; color: white; }
-        .btn-secondary:hover { background: #7f8c8d; }
-        nav { margin-bottom: 20px; }
-        nav a { margin-right: 15px; }
-        .meta { color: #7f8c8d; margin: 10px 0; }
-    </style>
-</head>
-<body>
-    <nav>
-        <a href="/">Главная</a>
-        <a href="{% url 'shop:product_list' %}">Каталог</a>
-        <a href="{% url 'shop:cart_view' %}">Корзина</a>
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - Turizm Shop{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'shop:index' %}" class="text-decoration-none">
+                    <i class="bi bi-house"></i> Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'shop:product_list' %}" class="text-decoration-none">Каталог</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
     </nav>
 
-    <div class="product-detail">
-        <div class="product-image">
-            {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}">
-            {% else %}
-                <div style="background: #ecf0f1; height: 300px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
-                    Нет фото
+    <div class="row">
+        
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" 
+                     style="max-height: 500px; object-fit: contain;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                     style="height: 500px;">
+                    <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
                 </div>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
 
-        <div class="product-info">
-            <h1>{{ product.name }}</h1>
-            
-            <p class="meta">
-                <strong>Категория:</strong> {{ product.category.name|default:"Не указана" }}<br>
-                <strong>Производитель:</strong> {{ product.proizvodstvo.name|default:"Не указан" }}
-            </p>
+       
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h1 class="card-title mb-3">{{ product.name }}</h1>
+                    
+                    
+                    {% if product.proizvodstvo %}
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-building"></i> 
+                        Производитель: <strong>{{ product.proizvodstvo.name }}</strong>
+                    </p>
+                    {% endif %}
 
-            <div class="price">{{ product.price }} руб.</div>
+                    
+                    {% if product.category %}
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-tag"></i> 
+                        Категория: 
+                        <a href="{% url 'shop:product_list' %}?category={{ product.category.id }}" 
+                           class="text-decoration-none">
+                            {{ product.category.name }}
+                        </a>
+                    </p>
+                    {% endif %}
 
-            <div class="stock {% if product.stock_quantity > 0 %}available{% else %}unavailable{% endif %}">
-                {% if product.stock_quantity > 0 %}
-                    ✓ В наличии: {{ product.stock_quantity }} шт.
-                {% else %}
-                    ✗ Нет в наличии
-                {% endif %}
-            </div>
+                    <div class="my-4">
+                        <span class="display-4 fw-bold text-primary">{{ product.price }} ₽</span>
+                    </div>
 
-            <div class="description">
-                <h3>Описание:</h3>
-                <p>{{ product.description|linebreaks }}</p>
-            </div>
+                   
+                    <div class="mb-4">
+                        {% if product.stock_quantity > 0 %}
+                            <span class="badge bg-success fs-6">
+                                <i class="bi bi-check-circle-fill"></i> 
+                                В наличии: {{ product.stock_quantity }} шт.
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger fs-6">
+                                <i class="bi bi-x-circle-fill"></i> 
+                                Нет в наличии
+                            </span>
+                        {% endif %}
+                    </div>
 
-            <div style="margin-top: 30px;">
-                <a href="{% url 'shop:product_list' %}" class="btn btn-secondary">← Назад к каталогу</a>
-                
-                {% if product.stock_quantity > 0 %}
-                    <form action="{% url 'shop:cart_add' product_id=product.id %}" method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success">Добавить в корзину</button>
-                    </form>
-                {% endif %}
+                    
+                    <div class="mb-4">
+                        <h5><i class="bi bi-info-circle"></i> Описание</h5>
+                        <p class="text-muted">{{ product.description|linebreaks }}</p>
+                    </div>
+
+                   
+                    <div class="mt-auto">
+                        {% if product.stock_quantity > 0 %}
+                            <form action="{% url 'shop:cart_add' product_id=product.id %}" method="post" 
+                                  class="d-grid gap-2">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-cart-plus"></i> Добавить в корзину
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                <i class="bi bi-x-circle"></i> Нет в наличии
+                            </button>
+                        {% endif %}
+                        <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Вернуться к каталогу
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</body>
-</html>
+
+  
+    {% if related_products %}
+    <div class="mt-5">
+        <h3 class="mb-4"><i class="bi bi-star-fill text-warning"></i> Похожие товары</h3>
+        <div class="row g-3">
+            {% for related in related_products %}
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm">
+                    {% if related.image %}
+                    <img src="{{ related.image.url }}" class="card-img-top" alt="{{ related.name }}" 
+                         style="height: 150px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 150px;">
+                        <i class="bi bi-image text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title">{{ related.name }}</h6>
+                        <p class="card-text text-muted">{{ related.price }} ₽</p>
+                        <a href="{% url 'shop:product_detail' pk=related.id %}" 
+                           class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-eye"></i> Подробнее
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
